@@ -11,11 +11,11 @@
 
 ## Features
 List the ready features here:
--Users can create an account and log in.
--Users can create, read, update, and delete blog posts.
--Users can view a list of all blog posts and search for specific posts using keywords.
--Users can like and comment on blog posts.
--Users can reply to comments.
+- Users can create an account and log in.
+- Users can create, read, update, and delete blog posts.
+- Users can view a list of all blog posts and search for specific posts using keywords.
+- Users can like and comment on blog posts.
+- Users can reply to comments.
 
 
 
@@ -23,19 +23,19 @@ List the ready features here:
 
 Here is the following procedure to run these APIs in your system 
 
--clone this repository in your local machine using following command
+- clone this repository in your local machine using following command
 
 gitclone repository-url 
 
--check if you have python installed in your system and if it's not installed from here ( https://www.python.org/downloads/ )
+- check if you have python installed in your system and if it's not installed from here ( https://www.python.org/downloads/ )
 
--Now open the cloned repository folder and run the following command to install all the required dependencies :
+- Now open the cloned repository folder and run the following command to install all the required dependencies :
 
 pip install -r requirements.txt
 
 Now you have your basics set up 
 
--Run the local server using the command 
+- Run the local server using the command 
 
 python manage.py runserver
  
