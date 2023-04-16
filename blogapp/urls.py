@@ -1,7 +1,7 @@
 from django.urls import path, include
 from .views import UsersAPIView, MyTokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import PostListAPIView, PostDetailAPIView, UserPostAPIView, UpvoteAPIView, CommentAPIView
+from .views import PostListAPIView, PostDetailAPIView, UserPostAPIView, LikeAPIView, CommentAPIView, PostSearchAPIView,ReplyAPIView
 
 
 urlpatterns = [
@@ -10,7 +10,11 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view()),
     path('post/', PostListAPIView.as_view()),
     path('post/<int:pk>/', PostDetailAPIView.as_view()),
-    path('post/<int:pk>/upvote/', UpvoteAPIView.as_view()),
+    path('post/<int:pk>/upvote/', LikeAPIView.as_view()),
     path('post/<int:pk>/comment/', CommentAPIView.as_view()),
     path('post/<username>/', UserPostAPIView.as_view()),
+    path('posts/search/', PostSearchAPIView.as_view()),
+    path('posts/search/', PostSearchAPIView.as_view()),
+    path('comment/<int:pk>/reply/', ReplyAPIView.as_view()),
+
 ]

@@ -1,13 +1,13 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework import permissions
-from .models import Post, Upvote, Comment
+from rest_framework import status, permissions, generics, filters
+from .models import Post, Like, Comment
 from django.contrib.auth.models import User
-from .serializers import PostSerializer, UpvoteSerializer, CommentSerializer
-from .serializers import UserSerializer
+from .serializers import PostSerializer, LikeSerializer, CommentSerializer, ReplySerializer, UserSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import MyTokenObtainPairSerializer
+from django.db.models import Q
+
 
 class UsersAPIView(APIView):
     def get(self, request):
@@ -73,7 +73,7 @@ class PostDetailAPIView(APIView):
             'user': request.user.id,
             'title': request.data.get('title'),
             'body': request.data.get('body'),
-            'upvote_count': post.upvote_count
+            'like_count': post.like_count
         }
         serializer = PostSerializer(post, data = data, partial = True)
         if serializer.is_valid():
@@ -105,7 +105,7 @@ class UserPostAPIView(APIView):
         return Response(serializer.data, status = status.HTTP_200_OK)
 
 
-class UpvoteAPIView(APIView):
+class LikeAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, pk):
@@ -119,14 +119,14 @@ class UpvoteAPIView(APIView):
         if post is None:
             return Response({'error': 'Post not found'}, status = status.HTTP_404_NOT_FOUND)
         
-        upvoters = post.upvotes.all().values_list('user', flat = True)
+        upvoters = post.likes.all().values_list('user', flat = True)
         if request.user.id in upvoters:
-            post.upvote_count -= 1
-            post.upvotes.filter(user = request.user).delete()
+            post.like_count -= 1
+            post.likes.filter(user = request.user).delete()
         else:
-            post.upvote_count += 1
-            upvote = Upvote(user = request.user, post = post)
-            upvote.save()
+            post.like_count += 1
+            like = Like(user = request.user, post = post)
+            like.save()
         post.save()
         serializer = PostSerializer(post)
         return Response(serializer.data, status = status.HTTP_200_OK)
@@ -153,13 +153,56 @@ class CommentAPIView(APIView):
         post = self.get_object(pk)
         if post is None:
             return Response({'error': 'Post not found'}, status = status.HTTP_404_NOT_FOUND)
+
         data = {
             'user': request.user.id,
             'post': post.id,
-            'body': request.data.get('body')
+            'body': request.data['body'] if isinstance(request.data, dict) else request.data
         }
         serializer = CommentSerializer(data = data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status = status.HTTP_201_CREATED)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+
+    
+
+class PostSearchAPIView(generics.ListAPIView):
+    serializer_class = PostSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'body']
+
+    def get_queryset(self):
+        queryset = Post.objects.all()
+        query = self.request.query_params.get('query', None)
+        if query is not None:
+            queryset = queryset.filter(Q(title__icontains=query) | Q(content__icontains=query))
+        return queryset
+
+
+class ReplyAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, pk):
+        try:
+            return Comment.objects.get(pk=pk)
+        except Comment.DoesNotExist:
+            return None
+
+    def post(self, request, pk, *args, **kwargs):
+        comment = self.get_object(pk)
+        if comment is None:
+            return Response({'error': 'Comment not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = {
+            'user': request.user.id,
+            'comment': comment.id,
+            'body': request.data['body'] if isinstance(request.data, dict) else request.data
+        }
+        serializer = ReplySerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+

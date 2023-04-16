@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import Post, Upvote, Comment
+from .models import Post, Like, Comment, Reply
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -20,18 +20,22 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
     
 class PostSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source = 'user.username')
+    # user = serializers.ReadOnlyField(source = 'user.username')
     class Meta:
         model = Post
-        fields = ('id', 'title', 'body', 'created', 'updated', 'user', 'upvote_count')
+        fields = ('id', 'title', 'body', 'created', 'updated', 'user', 'like_count')
 
-class UpvoteSerializer(serializers.ModelSerializer):
+class LikeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Upvote
+        model = Like
         fields = ('id', 'user', 'post')
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source = 'user.username')
     class Meta:
         model = Comment
         fields = ('id', 'user', 'post', 'body', 'created')
+
+class ReplySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reply
+        fields = ('id', 'user', 'comment', 'body', 'created_at')
