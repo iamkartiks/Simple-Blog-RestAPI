@@ -4,6 +4,9 @@ from django.urls import reverse
 
 
 class Post(models.Model):
+    """
+    Post Model which will create instance of Post in database
+    """
     user = models.ForeignKey(User, on_delete = models.CASCADE)
     title = models.CharField(max_length = 100)
     body = models.TextField()
@@ -19,11 +22,17 @@ class Post(models.Model):
 
 
 class Like(models.Model):
+    """
+    Like Model which will store like count of the Post data as an separate instance
+    """
     user = models.ForeignKey(User, related_name = 'likes', on_delete = models.CASCADE)
     post = models.ForeignKey(Post, related_name = 'likes', on_delete = models.CASCADE)
 
 
 class Comment(models.Model):
+    """
+    Comment Model which will store like count of the Post data as an separate instance
+    """
     user = models.ForeignKey(User, related_name = 'comments', on_delete = models.CASCADE)
     post = models.ForeignKey(Post, related_name = 'comments', on_delete = models.CASCADE)
     body = models.TextField()
@@ -33,6 +42,9 @@ class Comment(models.Model):
         return self.body
 
 class Reply(models.Model):
+    """
+    Reply Model which will store like replies of a specific Comment data as an separate instance
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='replies')
     body = models.TextField()

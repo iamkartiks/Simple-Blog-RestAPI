@@ -10,13 +10,24 @@ from django.db.models import Q
 
 
 class UsersAPIView(APIView):
+    """
+    Arguments : API View
+    Returns : List of all the users from the database
+    
+    """
     def get(self, request):
         users = User.objects.all()
         serializer = UserSerializer(users, many = True)
         return Response(serializer.data)
-    
-    def post(self, request):
-        
+
+
+class AddUserAPI(APIView):
+    """
+    Arguments : API View, request_data
+                request_data = ["username","email","password"]
+    Returns : created user data (username & email)
+    """
+    def post(self, request):    
         serializer = UserSerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()
@@ -25,10 +36,18 @@ class UsersAPIView(APIView):
     
 
 class MyTokenObtainPairView(TokenObtainPairView):
+    """
+    Arguments : request_data ["username","password"]
+    Returns : tokens (refersh , access) and user_id
+    """
     serializer_class = MyTokenObtainPairSerializer
 
 
 class PostListAPIView(APIView):
+    """
+    Arguments : request_data ["title", "body"]
+    Returns : All Posts before making the POST API call , after that created post
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
@@ -50,6 +69,13 @@ class PostListAPIView(APIView):
 
 
 class PostDetailAPIView(APIView):
+    """
+        Arguments : request_data ["post_id"]
+        Returns : specific post details
+
+        Also allow authenticated user to update, delete their post
+
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, pk):
@@ -94,6 +120,11 @@ class PostDetailAPIView(APIView):
 
 
 class UserPostAPIView(APIView):
+    """
+        Arguments : user_name
+        Returns : All post made by the specific user
+
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, username, *args, **kwargs):
@@ -106,6 +137,14 @@ class UserPostAPIView(APIView):
 
 
 class LikeAPIView(APIView):
+    """
+    Post API for liking the post
+    Arguments : 
+    Returns : Post detail on which action been taken
+
+    This API call will let user like the post, once they made the POST request it'll upvote the count\
+    They can undo it by making another POST request
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, pk):
@@ -133,6 +172,12 @@ class LikeAPIView(APIView):
 
 
 class CommentAPIView(APIView):
+    """
+    This API will let user add comments on the post
+
+    Arguments : comment body
+    Returns : added comment details
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, pk):
@@ -168,6 +213,13 @@ class CommentAPIView(APIView):
     
 
 class PostSearchAPIView(generics.ListAPIView):
+    """
+    This GET API will let user search specific keywords present in the title or the body of the post
+
+    Arguments : filter keyword <Click on the filter button we'll get on the web page to provide argument>
+    Returns : Posts with that keyword otherwise return data with Null values
+    
+    """
     serializer_class = PostSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['title', 'body']
@@ -181,6 +233,13 @@ class PostSearchAPIView(generics.ListAPIView):
 
 
 class ReplyAPIView(APIView):
+    """
+    This API will let people add replies to the specific comments
+
+    Arguments : reply body
+
+    Return : created Reply details
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, pk):
