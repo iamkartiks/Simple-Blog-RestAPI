@@ -177,19 +177,20 @@ class CommentAPIViewTestCase(TestCase):
 
 
 
-def setUp(self):
-    # Create a user
-    self.user = User.objects.create(username='testuser')
+class PostSearchAPIViewTestCase(APITestCase):
+    def setUp(self):
+        # Create a user to associate with the posts
+        self.user = User.objects.create_user(username='testuser', password='testpass')
 
-    # Create some sample posts for testing
-    self.post1 = Post.objects.create(title='Test Post 1', body='This is a test post', user=self.user)
-    self.post2 = Post.objects.create(title='Test Post 2', body='Another test post', user=self.user)
-    self.post3 = Post.objects.create(title='Something else', body='This post has a different title', user=self.user)
+        # Create some sample posts for testing, associated with the user
+        self.post1 = Post.objects.create(title='Test Post 1', body='This is a test post', user=self.user)
+        self.post2 = Post.objects.create(title='Test Post 2', body='Another test post', user=self.user)
+        self.post3 = Post.objects.create(title='Something else', body='This post has a different title', user=self.user)
 
 
     def test_search_posts(self):
         # Search for posts with the keyword "test"
-        url = reverse('post-search') + '?filter=test'
+        url = reverse('post-search') + '?query=test'
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
@@ -198,33 +199,34 @@ def setUp(self):
         self.assertEqual(response.data[0]['title'], 'Test Post 1')
         self.assertEqual(response.data[1]['title'], 'Test Post 2')
 
-    # def test_search_no_results(self):
-    #     # Search for posts with a keyword that doesn't exist
-    #     url = reverse('post-search') + '?filter=foobar'
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, 200)
+    def test_search_posts_empty(self):
+        # Search for posts with the keyword "invalid"
+        url = reverse('post-search') + '?query=invalid'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
 
-    #     # Check that no posts were returned
-    #     self.assertEqual(len(response.data), 0)
+        # Check that no posts were returned
+        self.assertEqual(len(response.data), 0)
 
-# class ReplyAPIViewTestCase(APITestCase):
-#     def setUp(self):
-#         self.user = User.objects.create_user(username='testuser', password='testpass')
-#         self.comment = Comment.objects.create(user=self.user, post_id=1, body='Test Comment')
 
-#     def test_create_reply(self):
-#         self.client.force_authenticate(user=self.user)
-#         url = reverse('reply-comment', kwargs={'pk': self.comment.id})
-#         data = {'body': 'Test Reply'}
-#         response = self.client.post(url, data, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         reply = Reply.objects.last()
-#         serializer = ReplySerializer(reply)
-#         self.assertEqual(response.data, serializer.data)
+class ReplyAPIViewTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.comment = Comment.objects.create(user=self.user, post_id=1, body='Test Comment')
 
-#     def test_create_reply_with_invalid_data(self):
-#         self.client.force_authenticate(user=self.user)
-#         url = reverse('reply-comment', kwargs={'pk': self.comment.id})
-#         data = {'invalid': 'data'}
-#         response = self.client.post(url, data, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    def test_create_reply(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('reply-comment', kwargs={'pk': self.comment.id})
+        data = {'body': 'Test Reply'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        reply = Reply.objects.last()
+        serializer = ReplySerializer(reply)
+        self.assertEqual(response.data, serializer.data)
+
+    def test_create_reply_with_invalid_data(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('reply-comment', kwargs={'pk': self.comment.id})
+        data = {'invalid': 'data'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
