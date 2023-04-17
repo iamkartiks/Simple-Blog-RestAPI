@@ -8,6 +8,9 @@ from .models import Post, Like, Comment, Reply
 from .serializers import PostSerializer, CommentSerializer, ReplySerializer
 
 class AuthTestCase(TestCase):
+    """
+    test for user authentication
+    """
     def setUp(self):
         self.u = User.objects.create_user('test@dom.com', 'test@dom.com', 'pass')
         self.u.is_staff = True

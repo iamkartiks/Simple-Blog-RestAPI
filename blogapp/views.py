@@ -230,7 +230,7 @@ class PostSearchAPIView(generics.ListAPIView):
         queryset = Post.objects.all()
         query = self.request.query_params.get('query', None)
         if query is not None:
-            queryset = queryset.filter(Q(title__icontains=query) | Q(content__icontains=query))
+            queryset = queryset.filter(Q(title__icontains=query) | Q(body__icontains=query))
         return queryset
 
 
